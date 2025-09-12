@@ -1,0 +1,26 @@
+{
+	"publisher": "CodeCity-dev",
+	"name": "json-serializable-snippet",
+	"displayName": "Json Serializable Snippet",
+	"description": "Snippet for creating the Json Serializable boilerplate",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.61.0"
+	},
+	"categories": [
+		"Snippets"
+	],
+	"contributes": {
+		"snippets": [
+			{
+				"language": "dart",
+				"path": "./snippets/snippets.code-snippets"
+			}
+		]
+	},
+	"__metadata": {
+		"installedTimestamp": 1757516597237,
+		"targetPlatform": "undefined",
+		"size": 3058
+	}
+}
