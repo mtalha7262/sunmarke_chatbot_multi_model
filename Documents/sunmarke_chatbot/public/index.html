@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunmarke Voice RAG - AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .recording-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .record-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .record-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .record-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .record-button.recording {
+            background: #f44336;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .status.processing {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .transcript-box, .answer-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            min-height: 60px;
+        }
+        
+        .answer-box {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #666;
+        }
+        
+        .reset-button {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        
+        .reset-button:hover {
+            background: #d0d0d0;
+        }
+
+        .text-input-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .text-input-section input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .text-input-section button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .text-input-section button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .text-input-section button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Sunmarke Voice RAG</h1>
+            <p>Ask questions about Sunmarke School</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Hold button to record or type your question</p>
+        </div>
+        
+        <div class="content">
+            <!-- Text Input Section -->
+            <div class="text-input-section">
+                <input 
+                    type="text" 
+                    id="textQuery" 
+                    placeholder="Type your question here..." 
+                    onkeypress="handleKeyPress(event)"
+                />
+                <button id="askBtn" onclick="askTextQuestion()">Ask Question</button>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0; color: #999;">
+                <span>OR</span>
+            </div>
+
+            <!-- Voice Recording Section -->
+            <div class="recording-section">
+                <button id="recordBtn" class="record-button">🎙️</button>
+                <div id="timer" class="timer" style="display: none;">00:00</div>
+                <div id="status" class="status info" style="display: none;"></div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing...</p>
+            </div>
+            
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h3>Your Question</h3>
+                <div class="transcript-box" id="transcript"></div>
+                
+                <h3 style="margin-top: 20px;">Answer</h3>
+                <div class="answer-box" id="answer"></div>
+                
+                <audio id="answerAudio" class="audio-player" controls style="display: none;"></audio>
+                
+                <button class="reset-button" onclick="resetApp()">🔄 Ask Another Question</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedBlob;
+        let startTime;
+        let timerInterval;
+        const MAX_DURATION = 30; // seconds
+        
+        const recordBtn = document.getElementById('recordBtn');
+        const askBtn = document.getElementById('askBtn');
+        const textQuery = document.getElementById('textQuery');
+        const timer = document.getElementById('timer');
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const resultSection = document.getElementById('resultSection');
+        const transcript = document.getElementById('transcript');
+        const answer = document.getElementById('answer');
+        const answerAudio = document.getElementById('answerAudio');
+        
+        // Get API base URL (works both locally and on Vercel)
+        const API_BASE = window.location.origin;
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (elapsed >= MAX_DURATION) {
+                stopRecording();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                askTextQuestion();
+            }
+        }
+
+        async function askTextQuestion() {
+            const query = textQuery.value.trim();
+            
+            if (!query) {
+                showStatus('Please enter a question', 'error');
+                return;
+            }
+
+            loading.classList.add('active');
+            loadingText.textContent = 'Getting answer from AI...';
+            askBtn.disabled = true;
+            textQuery.disabled = true;
+            resultSection.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(query, data);
+                    showStatus('Answer generated successfully!', 'success');
+                } else {
+                    showStatus('Error: ' + data.message, 'error');
+                }
+
+            } catch (error) {
+                showStatus('Failed to get answer: ' + error.message, 'error');
+                console.error('Text query error:', error);
+            } finally {
+                loading.classList.remove('active');
+                askBtn.disabled = false;
+                textQuery.disabled = false;
+            }
+        }
+        
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Use a compatible mime type
+                let options = { mimeType: 'audio/webm' };
+                if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                    options = { mimeType: 'audio/mp4' };
+                    if (!MediaRecorder.isTypeSupported('audio/mp4')) {
+                        options = {};
+                    }
+                }
+                
+                mediaRecorder = new MediaRecorder(stream, options);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    recordedBlob = new Blob(audioChunks, { type: mimeType });
+                    
+                    // Auto-process: transcribe and get answer
+                    await processAudio(recordedBlob);
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                recordBtn.disabled = true;
+                recordBtn.classList.add('recording');
+                recordBtn.textContent = '⏹️';
+                timer.style.display = 'block';
+                showStatus('Recording... Hold button and speak your question clearly.', 'info');
+                resultSection.style.display = 'none';
+                textQuery.disabled = true;
+                askBtn.disabled = true;
+                
+            } catch (error) {
+                showStatus('Error accessing microphone: ' + error.message, 'error');
+                console.error('Microphone error:', error);
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                clearInterval(timerInterval);
+                
+                recordBtn.disabled = true;
+                recordBtn.classList.remove('recording');
+                recordBtn.textContent = '🎙️';
+                timer.style.display = 'none';
+                showStatus('Processing your question...', 'processing');
+            }
+        }
+        
+        async function processAudio(audioBlob) {
+            loading.classList.add('active');
+            loadingText.textContent = 'Transcribing audio...';
+            
+            try {
+                // Convert to WAV for better compatibility
+                const wavBlob = await convertToWav(audioBlob);
+                
+                // Send to API
+                const formData = new FormData();
+                formData.append('audio_file', wavBlob, 'recording.wav');
+                
+                loadingText.textContent = 'Getting answer from AI...';
+                
+                const response = await fetch(`${API_BASE}/process`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Get the transcribed question from the response
+                    const questionText = textQuery.value || 'Voice question';
+                    displayResults(questionText, data);
+                    showStatus('Answer generated successfully!', 'success');
+                } else {
+                    showStatus('Error: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('Processing failed: ' + error.message, 'error');
+                console.error('Processing error:', error);
+            } finally {
+                loading.classList.remove('active');
+                recordBtn.disabled = false;
+                textQuery.disabled = false;
+                askBtn.disabled = false;
+            }
+        }
+
+        function displayResults(questionText, data) {
+            transcript.textContent = questionText;
+            answer.textContent = data.answer || 'No answer generated';
+            
+            // Play audio if available
+            if (data.audio_base64) {
+                try {
+                    const audioData = Uint8Array.from(atob(data.audio_base64), c => c.charCodeAt(0));
+                    const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    answerAudio.src = audioUrl;
+                    answerAudio.style.display = 'block';
+                    
+                    // Auto-play the answer
+                    answerAudio.play().catch(err => {
+                        console.log('Auto-play prevented:', err);
+                    });
+                } catch (err) {
+                    console.error('Audio playback error:', err);
+                }
+            }
+            
+            resultSection.style.display = 'block';
+        }
+        
+        async function convertToWav(blob) {
+            try {
+                const arrayBuffer = await blob.arrayBuffer();
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Convert to WAV
+                const wavBlob = audioBufferToWav(audioBuffer);
+                audioContext.close();
+                return wavBlob;
+            } catch (error) {
+                console.warn('WAV conversion failed, using original:', error);
+                return blob;
+            }
+        }
+        
+        function audioBufferToWav(buffer) {
+            const length = buffer.length * buffer.numberOfChannels * 2 + 44;
+            const arrayBuffer = new ArrayBuffer(length);
+            const view = new DataView(arrayBuffer);
+            const channels = [];
+            let pos = 0;
+            
+            function setUint16(data) {
+                view.setUint16(pos, data, true);
+                pos += 2;
+            }
+            
+            function setUint32(data) {
+                view.setUint32(pos, data, true);
+                pos += 4;
+            }
+            
+            // Write WAV header
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8);
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt "
+            setUint32(16);
+            setUint16(1); // PCM
+            setUint16(buffer.numberOfChannels);
+            setUint32(buffer.sampleRate);
+            setUint32(buffer.sampleRate * 2 * buffer.numberOfChannels);
+            setUint16(buffer.numberOfChannels * 2);
+            setUint16(16);
+            setUint32(0x61746164); // "data"
+            setUint32(length - pos - 4);
+            
+            // Write interleaved data
+            for (let i = 0; i < buffer.numberOfChannels; i++) {
+                channels.push(buffer.getChannelData(i));
+            }
+            
+            let offset = 0;
+            while (pos < length) {
+                for (let i = 0; i < buffer.numberOfChannels; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+            
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+        
+        function resetApp() {
+            recordBtn.disabled = false;
+            recordBtn.classList.remove('recording');
+            recordBtn.textContent = '🎙️';
+            timer.style.display = 'none';
+            status.style.display = 'none';
+            resultSection.style.display = 'none';
+            transcript.textContent = '';
+            answer.textContent = '';
+            answerAudio.src = '';
+            answerAudio.style.display = 'none';
+            textQuery.value = '';
+            textQuery.disabled = false;
+            askBtn.disabled = false;
+            audioChunks = [];
+            recordedBlob = null;
+        }
+        
+        // Event listeners for voice recording (hold to record)
+        recordBtn.addEventListener('mousedown', startRecording);
+        recordBtn.addEventListener('mouseup', stopRecording);
+        recordBtn.addEventListener('mouseleave', stopRecording);
+        
+        // Touch events for mobile
+        recordBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startRecording();
+        });
+        recordBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopRecording();
+        });
+    </script>
+</body>
+</html>
