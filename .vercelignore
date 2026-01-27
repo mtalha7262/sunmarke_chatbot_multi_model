@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+
+# Data (not needed in production)
+data/
+scraping/
+ingestion/
+
+# Local development
+.env
+.env.local
+run.py
+
+# Tests
+tests/
+test_*.py
+
+# Documentation
+docs/
+*.md
+!README.md
