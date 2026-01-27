@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from llms.gemini_lc import build_llm as build_gemini
 from llms.groq_lc import build_groq_llm
-from llms.deepseek_lc import build_deepseek_llm  # Actually uses Groq Llama
+from llms.deepseek_lc import build_deepseek_llm  # Actually uses Deepseek
 from rag.prompts import SYSTEM_GUARDRAIL, build_user_prompt
 from rag.tools import sunmarke_rag_retrieve
 from speech.tts_edge import tts_mp3_bytes
@@ -18,8 +18,8 @@ TOP_K = int(os.getenv("TOP_K", "4"))
 # Updated labels to reflect actual models being used
 MODEL_LABELS = {
     "gemini": "Gemini",
-    "groq": "Groq Mixtral",  # First Groq model
-    "llama": "Groq Llama",   # Second Groq model (was "deepseek")
+    "groq": "Groq",  # First Groq model
+    "llama": "Deepseek",   # Second Groq model (was "deepseek")
 }
 
 
@@ -105,8 +105,8 @@ def initialize_models() -> Dict[str, Optional[Any]]:
     """
     Initialize all available models in priority order:
     1. Gemini (Google)
-    2. Groq Mixtral (First Groq model)
-    3. Groq Llama (Second Groq model - replacing paid DeepSeek)
+    2. Groq (First Groq model)
+    3. Deepseek (Second Groq model - replacing paid DeepSeek)
     
     Returns:
         Dict mapping model names to LLM instances (or None if unavailable)
@@ -121,20 +121,20 @@ def initialize_models() -> Dict[str, Optional[Any]]:
         print(f"⚠️ Gemini unavailable: {e}")
         models["gemini"] = None
     
-    # Priority 2: Groq Mixtral (main Groq model)
+    # Priority 2: Groq (main Groq model)
     try:
         models["groq"] = build_groq_llm()
-        print("✅ Groq Mixtral initialized")
+        print("✅ Groq initialized")
     except Exception as e:
-        print(f"⚠️ Groq Mixtral unavailable: {e}")
+        print(f"⚠️ Groq unavailable: {e}")
         models["groq"] = None
     
-    # Priority 3: Groq Llama (alternative Groq model, replacing DeepSeek)
+    # Priority 3: Deepseek (alternative Groq model, replacing DeepSeek)
     try:
         models["llama"] = build_deepseek_llm()  # Uses Groq's Llama model
-        print("✅ Groq Llama initialized")
+        print("✅ Deepseek initialized")
     except Exception as e:
-        print(f"⚠️ Groq Llama unavailable: {e}")
+        print(f"⚠️ Deepseek unavailable: {e}")
         models["llama"] = None
     
     # Filter out None values
