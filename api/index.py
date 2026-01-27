@@ -136,7 +136,7 @@ async def generate_streaming_responses(question: str):
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/api/", response_class=HTMLResponse)
 async def root():
     html_path = os.path.join(PUBLIC_DIR, "index.html")
     if os.path.exists(html_path):
@@ -145,7 +145,7 @@ async def root():
     return HTMLResponse(content="<h1>Sunmarke Multi-Model Voice RAG API</h1>")
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     return {
         "status": "healthy",
@@ -156,7 +156,7 @@ async def health_check():
     }
 
 
-@app.post("/transcribe", response_model=TranscriptionResponse)
+@app.post("/api/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(audio_file: UploadFile = File(...)):
     temp_original = None
     temp_converted = None
@@ -210,7 +210,7 @@ async def transcribe_audio(audio_file: UploadFile = File(...)):
                     pass
 
 
-@app.post("/ask-stream")
+@app.post("/api/ask-stream")
 async def ask_question_stream_post(request: AskRequest):
     """POST endpoint for streaming responses"""
     query = (request.query or "").strip()
@@ -234,7 +234,7 @@ async def ask_question_stream_post(request: AskRequest):
     )
 
 
-@app.get("/ask-stream")
+@app.get("/api/ask-stream")
 async def ask_question_stream_get(query: str = Query(...)):
     """GET endpoint for EventSource streaming"""
     q = (query or "").strip()
@@ -258,7 +258,7 @@ async def ask_question_stream_get(query: str = Query(...)):
     )
 
 
-@app.post("/process-stream")
+@app.post("/api/process-stream")
 async def process_voice_stream(audio_file: UploadFile = File(...)):
     """Process voice and stream responses"""
     transcription = await transcribe_audio(audio_file)
