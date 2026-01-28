@@ -288,7 +288,7 @@ if __name__ == "__main__":
     reload_flag = os.getenv("RELOAD", "true").lower() == "true"
     print("🚀 Starting Sunmarke Multi-Model Voice RAG API with Streaming...")
     print("🌐 Open: http://localhost:8000")
-    print("📊 Models: Gemini | Groq Mixtral | Groq Llama")
+    print("📊 Models: Gemini | Groq  | Deepseek")
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=reload_flag, timeout_graceful_shutdown=1)
 
 handler = app
